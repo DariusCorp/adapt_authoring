@@ -24,6 +24,7 @@
   "app.password": "Contraseña",
   "app.login": "Iniciar sesión",
   "app.logout": "Cerrar sesión",
+  "app.loading": "Loading",
   "app.help": "Ayuda",
   "app.register": "Registrar",
   "app.pleaseloginor": "Por favor inice sesión, o",
