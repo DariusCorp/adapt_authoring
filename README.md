@@ -2,6 +2,18 @@
 
 Adapt is a free and easy to use framework and authoring tool that creates fully responsive, multi-device, HTML5 e-learning content.
 
+## Run & build
+
+Run with:
+```js
+    npm run local
+```
+On any change, it triggers a rebuild. There's a watcher for the build generated files, whenever there's a change, it triggers 
+```js 
+    node serve
+```
+After it's done, just refresh.
+
 ## What Does It Do?
 
 The Adapt authoring tool is a web-based user interface for the [Adapt Framework](https://github.com/adaptlearning/adapt_framework). Use it to create responsive, single-version HTML5 e-learning courses for delivery on a web server or SCORM-compliant learning management system.

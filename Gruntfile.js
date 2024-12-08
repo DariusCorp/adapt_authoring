@@ -1,5 +1,8 @@
 // LICENCE https://github.com/adaptlearning/adapt_authoring/blob/master/LICENSE
 module.exports = function(grunt) {
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-connect');
+
   require('matchdep').filterAll('grunt-*').forEach(grunt.loadNpmTasks);
   // Project configuration.
   grunt.initConfig({
@@ -13,6 +16,31 @@ module.exports = function(grunt) {
         },
         dest: 'temp/lang'
       }
+    },
+    watch: {
+      adaptFiles: {
+        files: ['frontend/src/*', 'config/**/*', 'routes/**/*'],
+        tasks: ['build'],
+        options: {
+          spawn: false,
+        },
+      },
+    },
+    concurrent: {
+      serve: {
+        tasks: ['watch', 'shell:startServer'],
+        options: {
+          logConcurrentOutput: true
+        },
+      },
+    },
+    shell: {
+      startServer: {
+        command: 'nodemon --watch fontend/build --watch temp/lang --exec "node server"',
+        options: {
+          async: true,
+        },
+      },
     },
     copy: {
       main: {
@@ -162,6 +190,8 @@ module.exports = function(grunt) {
       }
     }
   });
+
+  grunt.registerTask('serve', ['concurrent:serve']);
 
   grunt.registerTask('migration-conf', 'Creating migration Conf', function() {
     var mongoUri = require('mongodb-uri');
