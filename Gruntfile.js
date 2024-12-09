@@ -19,7 +19,7 @@ module.exports = function(grunt) {
     },
     watch: {
       adaptFiles: {
-        files: ['frontend/src/*', 'config/**/*', 'routes/**/*'],
+        files: ['frontend/src/**/*', 'config/**/*', 'routes/**/*'],
         tasks: ['build'],
         options: {
           spawn: false,
