@@ -86,6 +86,7 @@
     "yauzl": "^2.10.0"
   },
   "devDependencies": {
+    "browserify": "^17.0.1",
     "connect-livereload": "^0.6.1",
     "grunt-concurrent": "^3.0.0",
     "grunt-contrib-connect": "^5.0.1",
@@ -96,6 +97,7 @@
     "mocha-simple-html-reporter": "^1.1.0",
     "mongodb": "^4.10.0",
     "nodemon": "^3.1.7",
+    "path-browserify": "^1.0.1",
     "should": "^13.2.3",
     "supertest": "^4.0.2"
   }

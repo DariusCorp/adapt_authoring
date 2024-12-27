@@ -30,7 +30,7 @@ define(function (require) {
               if (relativePath.startsWith('ppt/slides/') && relativePath.endsWith('.xml')) {
                 file.async('text').then((content) => {
                   xmlOutput += `<h3>${relativePath}</h3><pre>${this.escapeHTML(content)}</pre>`;
-                  this.renderXML(content, xmlOutput, file);
+                  this.renderXML(content, xmlOutput, file, zip);
                 });
               }
             });
@@ -46,7 +46,7 @@ define(function (require) {
       }
     },
 
-    renderXML: function (xmlContent, xmlString, slideFile) {
+    renderXML: async function (xmlContent, xmlString, slideFile, zip) {
       const outputElement = document.querySelector('.progress-container');
       outputElement.innerHTML = xmlString;
 
@@ -54,11 +54,9 @@ define(function (require) {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlContent, "application/xml");
 
-// Define namespaces
       const drawingMLNS = "http://schemas.openxmlformats.org/drawingml/2006/main";
       const presentationMLNS = "http://schemas.openxmlformats.org/presentationml/2006/main";
 
-// Extract bullets
       const bullets = [];
       const pictures = [];
       const shapes = xmlDoc.getElementsByTagNameNS(presentationMLNS, "sp");
@@ -66,10 +64,8 @@ define(function (require) {
       for (let shape of shapes) {
         const txBody = shape.getElementsByTagNameNS(presentationMLNS, "txBody")[0];
         if (txBody) {
-          debugger
           const paragraphs = txBody.getElementsByTagNameNS(drawingMLNS, "p");
           for (let paragraph of paragraphs) {
-            debugger
             let bulletText = "";
             const textRuns = paragraph.getElementsByTagNameNS(drawingMLNS, "t");
             for (let textRun of textRuns) {
@@ -87,32 +83,40 @@ define(function (require) {
         const blip = pic.getElementsByTagNameNS(drawingMLNS, "blip")[0];
         if (blip) {
           const embedId = blip.getAttribute("r:embed");
-          pictures.push({ slide: slideFile, embedId });
+          pictures.push({slide: slideFile.name, embedId});
         }
       }
 
-// Log the bullets
       console.log("Extracted Bullets:", bullets);
+      console.log("Extracted Pictures:", pictures);
+
+      for (const picture of pictures) {
+        const pictureRel = picture.slide.replace('ppt/slides/', 'ppt/slides/_rels/') + '.rels';
+        if (zip.files[pictureRel]) {
+          const relContent = await zip.file(pictureRel).async('text');
+          debugger;
+          const relDoc = new DOMParser().parseFromString(relContent, "application/xml");
+          const rel = Array.from(relDoc.getElementsByTagName("Relationship"))
+            .find((r) => r.getAttribute("Id") === picture.embedId);
+
+          if (rel) {
+            const imageName = this.getLastPart(rel.getAttribute("Target"));
+            const mediaPath = `ppt/media/${imageName}`;
+            const imageBlob = await zip.file(mediaPath).async('blob');
+
+            // Download image
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(imageBlob);
+            link.download = mediaPath.split('/').pop();
+            link.click();
+          }
+        }
+      }
     },
 
-    getXPathResult(xpath, contextNode, doc) {
-      const nodes = doc.evaluate(
-        xpath,
-        contextNode || doc,
-        (prefix) => {
-          if (prefix === 'p') return "http://schemas.openxmlformats.org/presentationml/2006/main";
-          if (prefix === 'a') return "http://schemas.openxmlformats.org/drawingml/2006/main";
-          return null;
-        },
-        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-        null
-      );
-
-      const results = [];
-      for (let i = 0; i < nodes.snapshotLength; i++) {
-        results.push(nodes.snapshotItem(i));
-      }
-      return results;
+    getLastPart(path) {
+      const parts = path.split('/');
+      return parts[parts.length - 1];
     },
 
     escapeHTML: function (unsafe) {
