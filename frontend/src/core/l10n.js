@@ -19,7 +19,7 @@ define(['require', 'jquery', 'polyglot', 'core/origin'], function(require, $, Po
   /**
   * Initialise from language file
   */
-  var locale = localStorage.getItem('lang') || 'en';
+  var locale = localStorage.getItem('lang') || 'ro';
   $.getJSON('lang/' + locale, function(data) {
     polyglot = new Polyglot({
       locale: locale,

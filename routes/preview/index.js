@@ -39,7 +39,16 @@ server.get('/preview/:tenant/:course/*', (req, res, next) => {
 
   function sendFile(filename) {
     res.sendFile(filename, {
-      root: path.join(configuration.serverRoot, Constants.Folders.Temp, masterTenantId, Constants.Folders.Framework, Constants.Folders.AllCourses, tenantId, courseId, Constants.Folders.Build)
+      root: path.join(
+        configuration.serverRoot,
+        Constants.Folders.Temp,
+        masterTenantId,
+        Constants.Folders.Framework,
+        Constants.Folders.AllCourses,
+        tenantId,
+        courseId,
+        Constants.Folders.Build
+      )
     }, error => {
       if(error) res.status(error.status || 500).end();
     });

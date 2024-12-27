@@ -1,0 +1,9 @@
+{
+  "app.scaffold": {
+    "general": "General",
+    "properties": "Proprietăți",
+    "settings": "Setări",
+    "extensions": "Extensii",
+    "colourPickerCancel": "Anulează selecție"
+  }
+}

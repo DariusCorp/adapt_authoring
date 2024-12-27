@@ -9,6 +9,7 @@ require.config({
     imageReady: 'libraries/imageReady',
     inview: 'libraries/inview',
     jquery: 'libraries/jquery',
+    jszip: '../../node_modules/jszip/dist/jszip',
     jqueryForm : 'libraries/jquery.form',
     jqueryTagsInput: 'libraries/jquery.tagsinput.min',
     jqueryUI: 'libraries/jquery-ui.min',

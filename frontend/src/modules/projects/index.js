@@ -2,6 +2,7 @@
 define(function(require) {
   var Origin = require('core/origin');
   var ProjectsView = require('./views/projectsView');
+  var PptxImportView = require('./views/pptxImportView');
   var ProjectsSidebarView = require('./views/projectsSidebarView');
   var MyProjectCollection = require('./collections/myProjectCollection');
   var SharedProjectCollection = require('./collections/sharedProjectCollection');
@@ -76,6 +77,15 @@ define(function(require) {
   Origin.on('globalMenu:dashboard:open', function() {
     Origin.router.navigateTo('dashboard');
   });
+
+  Origin.on('router:pptxImport', function() {
+    Origin.trigger('location:title:update', {
+      breadcrumbs: ['dashboard'],
+      title: Origin.l10n.t('app.pptxImport')
+    });
+    Origin.contentPane.setView(PptxImportView);
+  });
+
 
   Origin.on('origin:dataReady login:changed', function() {
     Origin.router.setHomeRoute('dashboard');

@@ -126,7 +126,7 @@ function ImportSourceCheck(req, done) {
       }).forEach(function (file) {
         courseLangs.push(path.basename(file));
       });
-      COURSE_LANG = courseLangs[0] ? courseLangs[0] : 'en';
+      COURSE_LANG = courseLangs[0] ? courseLangs[0] : 'ro';
       importInfo['COURSE_LANG'] = COURSE_LANG;
       cb();
     });
