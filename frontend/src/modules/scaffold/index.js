@@ -52,7 +52,7 @@ define([
       }
 
       if (!isFieldTypeObject) {
-        return Backbone.Form.Field.prototype.createTitle.call({ key: key });
+        return Backbone.Form.Field.prototype.createTitle.call({ key });
       }
     };
 
@@ -152,7 +152,7 @@ define([
     }
   }
 
-  function buildSchema(schema, options, type) {
+  Scaffold.buildSchema = function (schema, options) {
 
     var scaffoldSchema = {};
 
@@ -261,7 +261,7 @@ define([
     if (options.isTheme) {
       schema = schema.variables;
     }
-    options.model.schema = buildSchema(schema, options, type);
+    options.model.schema = Scaffold.buildSchema(schema, options, type);
     options.fieldsets = buildFieldsets(schema, options);
     alternativeModel = options.alternativeModelToSave;
     alternativeAttribute = options.alternativeAttributeToSave;
