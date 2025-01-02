@@ -9,6 +9,7 @@ define(function (require) {
   var BlockModel = require('core/models/blockModel');
   var ComponentModel = require('core/models/componentModel');
   var ComponentTypeModel = require('core/models/componentTypeModel');
+  var EditorCollection = require('../../editor/global/collections/editorCollection');
 
   return OriginView.extend({
     tagName: 'div',
@@ -30,15 +31,6 @@ define(function (require) {
         var type = "course";
         var schema = new Schemas(type);
         var options = {model: course};
-        course.schema = Origin.scaffold.buildSchema(schema, options);
-        course.schema.title.default = 'Ppt Import';
-        course.schema.displayTitle.default = 'Ppt Import';
-        course.save(null, {
-          patch: false,
-          success:  () => console.log("Success"),
-          error: () => console.log("Failed")
-        });
-        window.console.log(course);
         const parsedSlides = [];
 
         reader.onload = async (e) => {
@@ -64,11 +56,15 @@ define(function (require) {
 
             await Promise.all(promises);
 
-            console.log(parsedSlides);
-            parsedSlides.forEach((value, index) => {
-              this.createGenericPage(course);
-            })
-
+            course.schema = Origin.scaffold.buildSchema(schema, options);
+            course.set('title', 'Ppt Import');
+            course.set('displayTitle', 'Ppt Import');
+            course.save(null, {
+              patch: false,
+              success:  () => this.createNewCourse(course, parsedSlides),
+              error: () => console.log("Failed")
+            });
+            window.console.log(course);
           }  catch (error) {
             console.error('Error unzipping PPTX file:', error);
             this.renderXML('<p>Error processing file. Please try again.</p>');
@@ -79,6 +75,13 @@ define(function (require) {
       } else {
         alert('Please upload a valid .pptx file');
       }
+    },
+
+    createNewCourse(course, parsedSlides) {
+      console.log(parsedSlides);
+      parsedSlides.forEach((value, index) => {
+        this.createGenericPage(course, value, index);
+      })
     },
 
     renderXML: async function (xmlContent, xmlString, slideFile, zip) {
@@ -169,19 +172,22 @@ define(function (require) {
       return {title, bullets, pictureBlobs};
     },
 
-    createGenericPage: function(courseModel) {
+    createGenericPage: function(courseModel, slide, index) {
       var contentObjectModel = new ContentObjectModel({
         _type: 'page',
         _courseId: courseModel.get('_id'),
-        _parentId: courseModel.get('_id')
+        _parentId: courseModel.get('_id'),
+        title: slide.title,
+        displayTitle: slide.title
       });
+      window.console.log(contentObjectModel);
       contentObjectModel.save(null, {
         error: () => window.console.log("Error"),
-        success: _.bind(this.createGenericArticle, this)
+        success: savedModel => this.createGenericArticle(savedModel, slide, index)
       });
     },
 
-    createGenericArticle: function(pageModel) {
+    createGenericArticle: function(pageModel, slide, index) {
       var articleModel = new ArticleModel({
         _courseId: pageModel.get('_courseId'),
         _parentId: pageModel.get('_id'),
@@ -189,11 +195,11 @@ define(function (require) {
       });
       articleModel.save(null, {
         error: () => window.console.log("Error"),
-        success: _.bind(this.createGenericBlock, this)
+        success: savedModel => this.createGenericBlock(savedModel, slide, index)
       });
     },
 
-    createGenericBlock: function(articleModel) {
+    createGenericBlock: function(articleModel, slide, index) {
       var blockModel = new BlockModel({
         _courseId: articleModel.get('_courseId'),
         _parentId: articleModel.get('_id'),
@@ -223,14 +229,16 @@ define(function (require) {
           var componentModel = new ComponentModel({
             _courseId: blockModel.get('_courseId'),
             _parentId: blockModel.get('_id'),
-            body: Origin.l10n.t('app.projectcontentbody'),
+            title: "Capitolul " + index,
+            displayTitle: "Capitolul " + index,
+            body: slide.bullets.join('\n'),
             _type: 'component',
             _component: 'text',
             _componentType: componentTypes.findWhere({ component: 'text' }).attributes._id,
             _layout: 'full'
           });
           componentModel.save(null, {
-            error: _.bind(this.onSaveError, this),
+            error: () => window.console.log("Error"),
             success: function() {
               Origin.router.navigateTo('editor/' + componentModel.get('_courseId') + '/menu');
             }

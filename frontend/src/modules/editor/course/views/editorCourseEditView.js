@@ -30,7 +30,7 @@ define(function(require) {
       this.model.set('tags', _.pluck(this.model.get('tags'), '_id'));
 
       var changedAttributes = this.model.changedAttributes(this.originalAttributes);
-      // should also include anything that's new 
+      // should also include anything that's new
       var newAttributes = _.omit(this.model.attributes, Object.keys(this.originalAttributes));
       _.extend(changedAttributes, newAttributes);
 
