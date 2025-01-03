@@ -65,7 +65,6 @@ define(function (require) {
               success: () => this.createNewCourse(course, parsedSlides),
               error: () => console.log("Failed")
             });
-            window.console.log(course);
           } catch (error) {
             console.error('Error unzipping PPTX file:', error);
             this.renderXML('<p>Error processing file. Please try again.</p>');
@@ -180,7 +179,6 @@ define(function (require) {
         title: slide.title,
         displayTitle: slide.title
       });
-      window.console.log(contentObjectModel);
       contentObjectModel.save(null, {
         error: () => window.console.log("Error"),
         success: savedModel => this.createGenericArticle(savedModel, slide, index)
@@ -386,7 +384,6 @@ define(function (require) {
     },
 
     saveCourseAsset(component, asset) {
-      window.console.log(component);
       var courseAssetModel = new CourseAssetModel({
         _assetId: asset._id,
         _contentType: 'component',
