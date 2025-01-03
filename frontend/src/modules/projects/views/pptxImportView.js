@@ -9,6 +9,7 @@ define(function (require) {
   var BlockModel = require('core/models/blockModel');
   var ComponentModel = require('core/models/componentModel');
   var ComponentTypeModel = require('core/models/componentTypeModel');
+  var CourseAssetModel = require('core/models/courseAssetModel');
   var EditorCollection = require('../../editor/global/collections/editorCollection');
 
   return OriginView.extend({
@@ -61,11 +62,11 @@ define(function (require) {
             course.set('displayTitle', 'Ppt Import');
             course.save(null, {
               patch: false,
-              success:  () => this.createNewCourse(course, parsedSlides),
+              success: () => this.createNewCourse(course, parsedSlides),
               error: () => console.log("Failed")
             });
             window.console.log(course);
-          }  catch (error) {
+          } catch (error) {
             console.error('Error unzipping PPTX file:', error);
             this.renderXML('<p>Error processing file. Please try again.</p>');
           }
@@ -155,7 +156,7 @@ define(function (require) {
             const imageName = this.getLastPart(rel.getAttribute("Target"));
             const mediaPath = `ppt/media/${imageName}`;
             const imageBlob = await zip.file(mediaPath).async('blob');
-            pictureBlobs.push(imageBlob);
+            pictureBlobs.push(new Blob([imageBlob], {type: 'image/jpeg'}));
 
             // Download image
             const link = document.createElement('a');
@@ -168,11 +169,10 @@ define(function (require) {
 
       // Wait for all picture processing to complete
       await Promise.all(promises);
-
       return {title, bullets, pictureBlobs};
     },
 
-    createGenericPage: function(courseModel, slide, index) {
+    createGenericPage: function (courseModel, slide, index) {
       var contentObjectModel = new ContentObjectModel({
         _type: 'page',
         _courseId: courseModel.get('_id'),
@@ -187,7 +187,7 @@ define(function (require) {
       });
     },
 
-    createGenericArticle: function(pageModel, slide, index) {
+    createGenericArticle: function (pageModel, slide, index) {
       var articleModel = new ArticleModel({
         _courseId: pageModel.get('_courseId'),
         _parentId: pageModel.get('_id'),
@@ -195,56 +195,210 @@ define(function (require) {
       });
       articleModel.save(null, {
         error: () => window.console.log("Error"),
-        success: savedModel => this.createGenericBlock(savedModel, slide, index)
+        success: savedModel => {
+          slide.bullets.length === 0 && slide.pictureBlobs.length === 0
+            ? this.createEmptyBlock(savedModel)
+            : this.createComponentsBlocks(savedModel, slide, index)
+          Origin.router.navigateTo('editor/' + savedModel.get('_courseId') + '/menu');
+        }
       });
     },
 
-    createGenericBlock: function(articleModel, slide, index) {
-      var blockModel = new BlockModel({
+    createComponentsBlocks: function (articleModel, slide, index) {
+      if (slide.bullets.length > 0) {
+        this.createTextBlock(articleModel, slide, index);
+      }
+      for (let blob of slide.pictureBlobs) {
+        this.createImageBlock(articleModel, blob, index);
+      }
+    },
+
+    createTextBlock: function (articleModel, slide, index) {
+      var block = this.createBlock(articleModel);
+      block.save(null, {
+        error: () => window.console.log("Error"),
+        success: savedModel => this.createTextComponent(savedModel, slide.bullets.join('\n'), index)
+      })
+    },
+
+    createImageBlock: function (articleModel, blob, index) {
+      var block = this.createBlock(articleModel);
+      block.save(null, {
+        error: () => window.console.log("Error"),
+        success: savedModel => this.createImageComponent(savedModel, blob, index)
+      })
+    },
+
+    createEmptyBlock: function (articleModel) {
+      var block = this.createBlock(articleModel);
+      block.save(null, {
+        error: () => window.console.log("Error"),
+        success: savedModel => this.createEmptyComponent(savedModel)
+      })
+    },
+
+    createBlock: function (articleModel) {
+      return new BlockModel({
         _courseId: articleModel.get('_courseId'),
         _parentId: articleModel.get('_id'),
         _type: 'block',
         layoutOptions: [
-          { type: 'left', name: 'app.layoutleft', pasteZoneRenderOrder: 2 },
-          { type: 'full', name: 'app.layoutfull', pasteZoneRenderOrder: 1 },
-          { type: 'right', name: 'app.layoutright', pasteZoneRenderOrder: 3 }
+          {type: 'left', name: 'app.layoutleft', pasteZoneRenderOrder: 2},
+          {type: 'full', name: 'app.layoutfull', pasteZoneRenderOrder: 1},
+          {type: 'right', name: 'app.layoutright', pasteZoneRenderOrder: 3}
         ]
-      });
-      blockModel.save(null, {
-        error: () => window.console.log("Error"),
-        success: _.bind(this.createGenericComponent, this)
       });
     },
 
-    createGenericComponent: function(blockModel) {
-      // Store the component types
-      var componentTypes = new EditorCollection(null, {
-        model: ComponentTypeModel,
-        url: 'api/componenttype',
-        _type: 'componentTypes'
-      });
+    createEmptyComponent: function (blockModel) {
+      let componentTypes = this.getComponentTypes();
       componentTypes.fetch({
         error: () => window.console.log("Error"),
-        success: _.bind(function() {
+        success: _.bind(function () {
+          var componentModel = new ComponentModel({
+            _courseId: blockModel.get('_courseId'),
+            _parentId: blockModel.get('_id'),
+            title: "Capitolul",
+            displayTitle: "Capitolul",
+            _type: 'component',
+            _component: 'blank',
+            _componentType: componentTypes.findWhere({component: 'blank'}).attributes._id,
+            _layout: 'full'
+          });
+          componentModel.save(null, {
+            error: () => window.console.log("Error"),
+            success: function () {
+              // Origin.router.navigateTo('editor/' + componentModel.get('_courseId') + '/menu');
+            }
+          });
+        }, this)
+      });
+    },
+
+    createTextComponent: function (blockModel, text, index) {
+      let componentTypes = this.getComponentTypes();
+      componentTypes.fetch({
+        error: () => window.console.log("Error"),
+        success: _.bind(function () {
           var componentModel = new ComponentModel({
             _courseId: blockModel.get('_courseId'),
             _parentId: blockModel.get('_id'),
             title: "Capitolul " + index,
             displayTitle: "Capitolul " + index,
-            body: slide.bullets.join('\n'),
+            body: text,
             _type: 'component',
             _component: 'text',
-            _componentType: componentTypes.findWhere({ component: 'text' }).attributes._id,
+            _componentType: componentTypes.findWhere({component: 'text'}).attributes._id,
             _layout: 'full'
           });
           componentModel.save(null, {
             error: () => window.console.log("Error"),
-            success: function() {
-              Origin.router.navigateTo('editor/' + componentModel.get('_courseId') + '/menu');
+            success: function () {
+              // Origin.router.navigateTo('editor/' + componentModel.get('_courseId') + '/menu');
             }
           });
         }, this)
       });
+    },
+
+    createImageComponent: function (blockModel, blob, index) {
+      var componentTypes = this.getComponentTypes();
+      const formData = new FormData();
+      let number = Math.floor(Math.random() * 1000);
+      formData.append('file', blob, 'image' + number + '.jpg');
+      formData.append('title', 'image' + number + '.jpg');
+      formData.append('description', 'asdas');
+      formData.append('tags_control', '');
+      formData.append('tags', '');
+
+      fetch('/api/asset', {method: 'POST', body: formData})
+        .then(response => this.parseJsonResponse(response))
+        .then(data => fetch('/api/asset/' + data._id, {method: 'GET'})
+          .then(response => this.parseJsonResponse(response))
+        )
+        .then(data => this.createAndSaveImageComponent(blockModel, componentTypes, index, data))
+        .catch(error => console.error('Upload failed:', error));
+    },
+
+    getComponentTypes: function () {
+      return new EditorCollection(null, {
+        model: ComponentTypeModel,
+        url: 'api/componenttype',
+        _type: 'componentTypes'
+      });
+    },
+
+    parseJsonResponse(response) {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    },
+
+    createAndSaveImageComponent(blockModel, componentTypes, index, asset) {
+      componentTypes.fetch({
+        error: () => window.console.log("Error"),
+        success: _.bind(function () {
+          var componentModel = new ComponentModel({
+            _courseId: blockModel.get('_courseId'),
+            _parentId: blockModel.get('_id'),
+            title: "Capitolul " + index,
+            displayTitle: "Capitolul " + index,
+            _type: 'component',
+            _component: 'graphic',
+            _componentType: componentTypes.findWhere({component: 'graphic'}).attributes._id,
+            _layout: 'full',
+            _onScreen: {
+              _isEnabled: false,
+              _classes: "",
+              _percentInviewVertical: 50
+            },
+            properties: {
+              instruction: "",
+              _graphic: {
+                alt: "",
+                longdescription: "",
+                large: "course/assets/" + asset.filename,
+                small: "course/assets/" + asset.filename,
+                _url: "",
+                attribution: "",
+                _target: "_blank"
+              },
+              _isScrollable: false,
+              _defaultScrollPercent: 0
+            },
+            themeSettings: {
+              _vanilla: {
+                _textAlignment: {
+                  _title: "",
+                  _body: "",
+                  _instruction: ""
+                }
+              }
+            }
+          });
+          componentModel.save(null, {
+            error: () => window.console.log("Error"),
+            success: savedModel => this.saveCourseAsset(savedModel, asset)
+          });
+        }, this)
+      });
+    },
+
+    saveCourseAsset(component, asset) {
+      window.console.log(component);
+      var courseAssetModel = new CourseAssetModel({
+        _assetId: asset._id,
+        _contentType: 'component',
+        _contentTypeId: component.get('id'),
+        _contentTypeParentId: component.attributes._parentId,
+        _courseId: component.attributes._courseId,
+        _fieldName: asset.filename,
+      });
+      courseAssetModel.save(null, {
+        error: () => window.console.log("Error"),
+        success: () => Origin.router.navigateTo('editor/' + courseAssetModel.get('_courseId') + '/menu')
+      })
     },
 
     getLastPart(path) {
