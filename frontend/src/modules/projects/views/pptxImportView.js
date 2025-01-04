@@ -88,7 +88,6 @@ define(function (require) {
     },
 
     createNewCourse(course, parsedSlides) {
-      console.log(parsedSlides);
       parsedSlides.forEach((value, index) => {
         this.createGenericPage(course, value, index);
       })
@@ -137,9 +136,6 @@ define(function (require) {
         }
       }
 
-      console.log("Title:", title);
-      console.log("Bullets:", bullets);
-
       const pics = xmlDoc.getElementsByTagNameNS(presentationMLNS, "pic");
       for (let pic of pics) {
         const blip = pic.getElementsByTagNameNS(drawingMLNS, "blip")[0];
@@ -148,9 +144,6 @@ define(function (require) {
           pictures.push({slide: slideFile.name, embedId});
         }
       }
-
-      console.log("Extracted Bullets:", bullets);
-      console.log("Extracted Pictures:", pictures);
 
       // Collect promises for all picture processing
       const promises = pictures.map(async (picture) => {
