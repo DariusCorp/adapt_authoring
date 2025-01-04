@@ -4,6 +4,7 @@ define(function(require) {
   var ProjectsView = require('./views/projectsView');
   var PptxImportView = require('./views/pptxImportView');
   var ProjectsSidebarView = require('./views/projectsSidebarView');
+  var PptxImportSidebarView = require('./views/pptxImportSidebarView');
   var MyProjectCollection = require('./collections/myProjectCollection');
   var SharedProjectCollection = require('./collections/sharedProjectCollection');
   var TagsCollection = require('core/collections/tagsCollection');
@@ -83,6 +84,7 @@ define(function(require) {
       breadcrumbs: ['dashboard'],
       title: Origin.l10n.t('app.pptxImport')
     });
+    Origin.sidebar.addView(new PptxImportSidebarView().$el);
     Origin.contentPane.setView(PptxImportView);
   });
 

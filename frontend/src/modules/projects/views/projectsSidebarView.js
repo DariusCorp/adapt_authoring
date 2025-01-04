@@ -11,7 +11,7 @@ define(function(require) {
     events: {
       'click .projects-sidebar-add-course': 'addCourse',
       'click .projects-sidebar-import-course': 'importCourse',
-      'click .projects-sidebar-import-pptx': 'importPptx',
+      'click .projects-sidebar-import-ppt': 'importPPT',
       'click .projects-sidebar-my-courses': 'gotoMyCourses',
       'click .projects-sidebar-shared-courses': 'gotoSharedCourses',
       'click .sidebar-filter-clear': 'clearFilterInput',
@@ -55,7 +55,7 @@ define(function(require) {
       Origin.router.navigateTo('frameworkImport');
     },
 
-    importPptx: function() {
+    importPPT: function() {
       Origin.router.navigateTo('pptxImport');
     },
 

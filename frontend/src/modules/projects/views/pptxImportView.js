@@ -16,16 +16,26 @@ define(function (require) {
     tagName: 'div',
     className: 'pptxImport',
 
-    events: {
-      'change .asset-file': 'onFileUpload',
+    preRender: function() {
+      Origin.trigger('location:title:update', { title: Origin.l10n.t('app.ppt-import-title') });
+      this.listenTo(Origin, {
+        'pptxImport:completeImport': this.completeImport
+      });
     },
 
     templateContext: function () {
       return {};
     },
 
-    onFileUpload: function (event) {
-      const fileInput = event.target.files[0];
+    completeImport: function (sidebarView) {
+      sidebarView.updateButton('.framework-import-sidebar-save-button', Origin.l10n.t('app.importing'));
+
+      const input = this.$('input[type="file"].asset-file')[0];
+      let fileInput = null;
+
+      if (input && input.files && input.files.length > 0) {
+        fileInput = input.files[0];
+      }
       if (fileInput && fileInput.name.endsWith('.pptx')) {
         const reader = new FileReader();
         var course = new CourseModel();

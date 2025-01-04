@@ -7,6 +7,9 @@
   </button>
 
   {{#ifHasPermissions "*/*:create,*/*:read,*/*:update,*/*:delete"}}
+    <button class="projects-sidebar-import-ppt action-secondary">
+      <span class="projects-sidebar-import-course-inner">{{t 'app.import-ppt'}}</span>
+    </button>
     <button class="projects-sidebar-import-course action-secondary">
       <span class="projects-sidebar-import-course-inner">{{t 'app.importcourse'}}</span>
     </button>
