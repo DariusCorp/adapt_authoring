@@ -62,6 +62,12 @@ module.exports = function(grunt) {
             flatten: true,
             src: ['frontend/src/libraries/ace/*'],
             dest: 'frontend/build/js/ace'
+          },
+          {
+            expand: true,
+            flatten: true,
+            src: 'node_modules/jszip/dist/jszip.js',
+            dest: 'frontend/src/libraries/'
           }
         ]
       }
