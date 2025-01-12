@@ -6,7 +6,7 @@
  * If using regular <script> tags to include your files, use backbone-forms.min.js
  *
  * Copyright (c) 2013 Charles Davison, Pow Media Ltd
- * 
+ *
  * License and more information at:
  * http://github.com/powmedia/backbone-forms
  */
@@ -73,6 +73,9 @@ var Form = Backbone.View.extend({
     this.NestedField = options.NestedField || this.NestedField || constructor.NestedField;
 
     //Check which fields will be included (defaults to all)
+    // console.log(this.selectedFields);
+    // console.log(options.fields);
+    // console.log( _.keys(schema));
     var selectedFields = this.selectedFields = options.fields || _.keys(schema);
 
     //Create fields
@@ -100,6 +103,7 @@ var Form = Backbone.View.extend({
    * @return {Form.Fieldset}
    */
   createFieldset: function(schema) {
+    // console.log(schema)
     var options = {
       schema: schema,
       fields: this.fields,
@@ -666,7 +670,7 @@ Form.Fieldset = Backbone.View.extend({
 
     //Store the fields for this fieldset
     this.fields = _.pick(options.fields, schema.fields);
-    
+
     //Override defaults
     this.template = options.template || schema.template || this.template || this.constructor.template;
   },
@@ -752,7 +756,7 @@ Form.Fieldset = Backbone.View.extend({
 
     Backbone.View.prototype.remove.call(this);
   }
-  
+
 }, {
   //STATICS
 
@@ -1200,7 +1204,7 @@ Form.Editor = Form.editors.Base = Backbone.View.extend({
   focus: function() {
     throw new Error('Not implemented');
   },
-  
+
   /**
    * Remove focus from the editor
    * Extend and override this method
@@ -1283,11 +1287,11 @@ Form.Editor = Form.editors.Base = Backbone.View.extend({
     if (_.isRegExp(validator)) {
       return validators.regexp({ regexp: validator });
     }
-    
+
     //Use a built-in validator if given a string
     if (_.isString(validator)) {
       if (!validators[validator]) throw new Error('Validator "'+validator+'" not found');
-      
+
       return validators[validator]();
     }
 
@@ -1297,10 +1301,10 @@ Form.Editor = Form.editors.Base = Backbone.View.extend({
     //Use a customised built-in validator if given an object
     if (_.isObject(validator) && validator.type) {
       var config = validator;
-      
+
       return validators[config.type](config);
     }
-    
+
     //Unkown validator type
     throw new Error('Invalid validator: ' + validator);
   }
@@ -1308,7 +1312,7 @@ Form.Editor = Form.editors.Base = Backbone.View.extend({
 
 /**
  * Text
- * 
+ *
  * Text input with focus, blur and change events
  */
 Form.editors.Text = Form.Editor.extend({
@@ -1438,7 +1442,7 @@ Form.editors.Password = Form.editors.Text.extend({
 
 /**
  * NUMBER
- * 
+ *
  * Normal text input that only allows a number. Letters etc. are not entered.
  */
 Form.editors.Number = Form.editors.Text.extend({
@@ -2144,7 +2148,7 @@ Form.editors.Object = Form.editors.Base.extend({
   },
 
   validate: function() {
-    var errors = _.extend({}, 
+    var errors = _.extend({},
       Form.editors.Base.prototype.validate.call(this),
       this.nestedForm.validate()
     );
@@ -2153,7 +2157,7 @@ Form.editors.Object = Form.editors.Base.extend({
 
   _observeFormEvents: function() {
     if (!this.nestedForm) return;
-    
+
     this.nestedForm.on('all', function() {
       // args = ["key:change", form, fieldEditor]
       var args = _.toArray(arguments);

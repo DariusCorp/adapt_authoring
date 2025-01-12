@@ -14,8 +14,8 @@ define(function(require) {
       success: function(model) {
         var form = Origin.scaffold.buildForm({ model: model });
         Helpers.setPageTitle(model);
-        Origin.sidebar.addView(new EditorComponentEditSidebarView({ model: model, form: form }).$el);
         Origin.contentPane.setView(EditorComponentEditView, { model: model, form: form });
+        Origin.sidebar.addView(new EditorComponentEditSidebarView({ model: model, form: form }).$el);
       }
     });
   });

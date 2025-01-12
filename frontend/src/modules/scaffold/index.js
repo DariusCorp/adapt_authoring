@@ -128,7 +128,8 @@ define([
       title: getTitle(),
       titleHTML: field.titleHTML,
       type: getType(),
-      validators: getValidators()
+      validators: getValidators(),
+      hidden: field.hidden,
     };
 
     if (_.isObject(inputType)) {
@@ -175,6 +176,17 @@ define([
     }
 
     return scaffoldSchema;
+  }
+
+  function computeAvailableFields(schema, modelSchema) {
+    const fields = [];
+    for (var key in schema) {
+      var attrs = modelSchema[key];
+      if(!attrs.hidden) {
+        fields.push(key);
+      }
+    }
+    return fields;
   }
 
   function buildFieldsets(schema, options) {
@@ -262,7 +274,9 @@ define([
       schema = schema.variables;
     }
     options.model.schema = Scaffold.buildSchema(schema, options, type);
+    console.log(options.model.schema);
     options.fieldsets = buildFieldsets(schema, options);
+    options.fields = computeAvailableFields(schema, options.model.schema);
     alternativeModel = options.alternativeModelToSave;
     alternativeAttribute = options.alternativeAttributeToSave;
     currentModel = options.model;
